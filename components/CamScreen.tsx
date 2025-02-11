@@ -155,7 +155,7 @@ const CamScreen = () => {
         </button>
         {capturedImage && (
           <button
-            className="absolute top-[50% - 150px] left-6 h-16 w-16 bg-transparent"
+            className="block md:hidden absolute top-[50% - 150px] left-6 h-16 w-16 bg-transparent"
             onClick={() => {
               if (fileImage) {
                 downloadImage(fileImage);
