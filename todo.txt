@@ -1,0 +1,1 @@
+[ ] Viết trang chứa tất cả các bức ảnh đã chụp, sử dụng localStorage

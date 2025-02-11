@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 import { useRef, useState, useEffect } from "react";
 const CamScreen = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,7 +82,7 @@ const CamScreen = () => {
     const res = await fetch(url);
     const buf = await res.arrayBuffer();
     return new File([buf], filename, { type: mimeType });
-  }
+  };
 
   // Function to download the captured image as a file
   const downloadImage = (fileImage: File) => {
@@ -94,17 +95,17 @@ const CamScreen = () => {
   };
 
   return (
-    <div className="flex justify-start items-center h-screen">
-      <div className="flex-1 h-full flex flex-col gap-4 items-center justify-center border-2 border-red-500">
-        <h1 className="text-2xl">Live</h1>
+    <div className="flex flex-col md:flex-row justify-start items-center h-screen">
+      <div className="flex-1 h-fit md:h-full flex flex-col gap-4 items-center justify-center border-2 border-red-500">
+        <h1 className="text-2xl hidden md:block">Live</h1>
         <video ref={videoRef} autoPlay={true} />
       </div>
-      <div className="flex-1 h-full flex flex-col gap-4 items-center justify-center border-2 border-green-500">
+      <div className="hidden md:flex flex-1 h-min md:h-full flex-col gap-4 items-center justify-center border-2 border-green-500">
         <h1 className="text-2xl">Captured</h1>
         <canvas id="canvas" width="640" height="480"></canvas>
       </div>
 
-      <div className="h-full w-[200px] bg-white/50 flex flex-col gap-8 justify-center items-center">
+      <div className="relative h-fit md:h-full w-full md:w-[200px] bg-gray-200 flex flex-row md:flex-col gap-8 p-4 justify-center items-center">
         <button
           onClick={() => {
             if (videoRef.current) {
@@ -130,7 +131,7 @@ const CamScreen = () => {
           className="h-16 w-16 bg-red-500 rounded-full"
         ></button>
         <button
-          className="h-16 w-16 bg-white rounded-full flex justify-center items-center"
+          className="h-16 w-16 bg-white rounded-full hidden md:flex justify-center items-center"
           onClick={() => {
             if (fileImage) {
               downloadImage(fileImage);
@@ -152,6 +153,24 @@ const CamScreen = () => {
             />
           </svg>
         </button>
+        {capturedImage && (
+          <button
+            className="absolute top-[50% - 150px] left-6 h-16 w-16 bg-transparent"
+            onClick={() => {
+              if (fileImage) {
+                downloadImage(fileImage);
+              }
+            }}
+          >
+            <NextImage
+              src={capturedImage}
+              alt="Captured"
+              width={500}
+              height={500}
+              className="w-full h-full object-cover"
+            />
+          </button>
+        )}
       </div>
     </div>
   );
