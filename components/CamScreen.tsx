@@ -1,7 +1,11 @@
 "use client";
 import NextImage from "next/image";
-import { useRef, useState, useEffect } from "react";
-const CamScreen = () => {
+import { useRef, useState, useEffect, Dispatch, SetStateAction } from "react";
+const CamScreen = ({
+  setIsCapturing,
+}: {
+  setIsCapturing: Dispatch<SetStateAction<boolean>>;
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -51,28 +55,6 @@ const CamScreen = () => {
     }
   }, [capturedImage]);
 
-  /** Vẽ hình ảnh chụp đã chụp được lên canvas */
-  const drawCapturedImage = (dataUrl: string) => {
-    const capturedImage = document.getElementById(
-      "canvas"
-    ) as HTMLCanvasElement;
-    const capturedImageContext = capturedImage.getContext("2d");
-    const img = new Image();
-    img.src = dataUrl;
-    img.onload = () => {
-      if (capturedImageContext) {
-        capturedImageContext.drawImage(
-          img,
-          0,
-          0,
-          capturedImage.width,
-          capturedImage.height
-        );
-        capturedImage.style.display = "block";
-      }
-    };
-  };
-
   /** convert from base64 format to image file */
   const urltoFile = async (url: string, filename: string, mimeType: string) => {
     const res = await fetch(url);
@@ -90,6 +72,7 @@ const CamScreen = () => {
     document.body.removeChild(link);
   };
 
+  /** Switch camera between front and back */
   const handleSwitchCamera = (isFrontCamera: boolean) => {
     if (mediaStream) {
       mediaStream.getTracks().forEach((track) => {
@@ -105,7 +88,6 @@ const CamScreen = () => {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: { exact: exactFacingMode },
-            
           },
         });
         setMediaStream(stream);
@@ -117,42 +99,47 @@ const CamScreen = () => {
     enableVideoStream();
   };
 
+  /** Function to capture the image */
+  const handleCapture = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        setCapturedImage(dataUrl);
+
+        // store the captured image in the local storage
+        localStorage.setItem("myPhoto", dataUrl);
+
+        // stop the camera
+        setIsCapturing(false);
+
+        // drawCapturedImage(dataUrl);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row justify-start items-center h-screen">
-      <div className="flex-1 h-fit md:h-full flex flex-col gap-4 items-center justify-center border-2 border-red-500">
+      <div className="w-full h-full flex flex-col gap-4 items-center justify-center border-2 border-red-500">
         <h1 className="text-2xl hidden md:block">Live</h1>
         <video ref={videoRef} autoPlay={true} />
       </div>
-      <div className="hidden md:flex flex-1 h-min md:h-full flex-col gap-4 items-center justify-center border-2 border-green-500">
+      <div className="hidden md:flex w-full h-full flex-col gap-4 items-center justify-center border-2 border-green-500">
         <h1 className="text-2xl">Captured</h1>
         <canvas id="canvas" width="640" height="480"></canvas>
       </div>
 
-      <div className="relative h-fit md:h-full w-full md:w-[200px] bg-gray-200 flex flex-row md:flex-col gap-8 p-4 justify-center items-center">
+      <div className="relative h-32 md:h-full w-full md:w-[200px] bg-gray-200 flex flex-row md:flex-col gap-8 p-4 justify-center items-center">
+        {/* Capture button */}
         <button
-          onClick={() => {
-            if (videoRef.current) {
-              const canvas = document.createElement("canvas");
-              canvas.width = videoRef.current.videoWidth;
-              canvas.height = videoRef.current.videoHeight;
-              const context = canvas.getContext("2d");
-              if (context) {
-                context.drawImage(
-                  videoRef.current,
-                  0,
-                  0,
-                  canvas.width,
-                  canvas.height
-                );
-                const dataUrl = canvas.toDataURL("image/png");
-                setCapturedImage(dataUrl);
-
-                drawCapturedImage(dataUrl);
-              }
-            }
-          }}
+          onClick={handleCapture}
           className="h-16 w-16 bg-red-500 rounded-full"
         ></button>
+        {/* Desktop download button */}
         <button
           className="h-16 w-16 bg-white rounded-full hidden md:flex justify-center items-center"
           onClick={() => {
@@ -176,6 +163,7 @@ const CamScreen = () => {
             />
           </svg>
         </button>
+        {/* Mobile Download button */}
         {capturedImage && (
           <button
             className="block md:hidden absolute top-[50% - 150px] left-6 h-16 w-16 bg-transparent"
