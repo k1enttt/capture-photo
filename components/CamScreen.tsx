@@ -6,10 +6,7 @@ const CamScreen = () => {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [fileImage, setFileImage] = useState<File | null>(null);
-
-  // const sendVideoData = (data: string) => {
-  //   socket.emit("videoData", data);
-  // };
+  const [isFrontCamera, setIsFrontCamera] = useState<boolean>(true);
 
   // ask permission from the user to open the webcam
   useEffect(() => {
@@ -34,6 +31,7 @@ const CamScreen = () => {
     }
   }, [videoRef, mediaStream]);
 
+  // stop the media stream when the component is unmounted
   useEffect(() => {
     return () => {
       if (mediaStream) {
@@ -53,9 +51,7 @@ const CamScreen = () => {
     }
   }, [capturedImage]);
 
-  /**
-   * Vẽ hình ảnh chụp đã chụp được lên canvas
-   *  */
+  /** Vẽ hình ảnh chụp đã chụp được lên canvas */
   const drawCapturedImage = (dataUrl: string) => {
     const capturedImage = document.getElementById(
       "canvas"
@@ -77,14 +73,14 @@ const CamScreen = () => {
     };
   };
 
-  //convert from base64 format to image file
+  /** convert from base64 format to image file */
   const urltoFile = async (url: string, filename: string, mimeType: string) => {
     const res = await fetch(url);
     const buf = await res.arrayBuffer();
     return new File([buf], filename, { type: mimeType });
   };
 
-  // Function to download the captured image as a file
+  /** Function to download the captured image as a file */
   const downloadImage = (fileImage: File) => {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(fileImage);
@@ -92,6 +88,33 @@ const CamScreen = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleSwitchCamera = (isFrontCamera: boolean) => {
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      setMediaStream(null);
+    }
+
+    const exactFacingMode = isFrontCamera ? "environment" : "user";
+
+    const enableVideoStream = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { exact: exactFacingMode },
+            
+          },
+        });
+        setMediaStream(stream);
+      } catch (error) {
+        console.error("Error accessing webcam", error);
+      }
+    };
+
+    enableVideoStream();
   };
 
   return (
@@ -171,6 +194,32 @@ const CamScreen = () => {
             />
           </button>
         )}
+        {/* Switch-cam button */}
+        <button
+          className="h-16 w-16 bg-white rounded-full flex md:hidden justify-center items-center"
+          onClick={() => {
+            handleSwitchCamera(isFrontCamera);
+            setIsFrontCamera(!isFrontCamera);
+          }}
+        >
+          <svg
+            className="w-6 h-6 text-black"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="m16 10 3-3m0 0-3-3m3 3H5v3m3 4-3 3m0 0 3 3m-3-3h14v-3"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   );
