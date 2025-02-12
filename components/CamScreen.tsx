@@ -1,4 +1,5 @@
 "use client";
+import { downloadImage, urltoFile } from "@/lib/utils";
 import NextImage from "next/image";
 import { useRef, useState, useEffect, Dispatch, SetStateAction } from "react";
 const CamScreen = ({
@@ -55,23 +56,6 @@ const CamScreen = ({
     }
   }, [capturedImage]);
 
-  /** convert from base64 format to image file */
-  const urltoFile = async (url: string, filename: string, mimeType: string) => {
-    const res = await fetch(url);
-    const buf = await res.arrayBuffer();
-    return new File([buf], filename, { type: mimeType });
-  };
-
-  /** Function to download the captured image as a file */
-  const downloadImage = (fileImage: File) => {
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(fileImage);
-    link.download = fileImage.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   /** Switch camera between front and back */
   const handleSwitchCamera = (isFrontCamera: boolean) => {
     if (mediaStream) {
@@ -116,8 +100,6 @@ const CamScreen = ({
 
         // stop the camera
         setIsCapturing(false);
-
-        // drawCapturedImage(dataUrl);
       }
     }
   };

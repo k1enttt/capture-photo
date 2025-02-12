@@ -2,13 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { downloadImage, urltoFile } from "@/lib/utils";
 
 export default function ReviewPage() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [fileImage, setFileImage] = useState<File | null>(null);
 
+  // get the captured image from the local storage
+  // and convert it to a file
   useEffect(() => {
     setCapturedImage(localStorage.getItem("myPhoto"));
-  }, []);
+    if (capturedImage) {
+      urltoFile(capturedImage, "image.png", "image/png").then((file) => {
+        setFileImage(file);
+      });
+    }
+  }, [capturedImage]);
 
   return (
     <div className="flex justify-center items-center flex-col h-screen">
@@ -30,7 +39,10 @@ export default function ReviewPage() {
         >
           Go home
         </button>
-        <button className="flex-1 p-1 border border-black">
+        <button
+          className="flex-1 p-1 border border-black"
+          onClick={() => fileImage && downloadImage(fileImage)}
+        >
           Get the photo
         </button>
       </div>
