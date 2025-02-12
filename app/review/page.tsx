@@ -27,8 +27,8 @@ export default function ReviewPage() {
           <Image
             src={capturedImage.replace("data:image/jpeg;base64,:", "")}
             alt="my photo"
-            layout="fill"
-            objectFit="contain"
+            fill
+            className="object-contain"
           />
         )}
       </div>
@@ -43,7 +43,7 @@ export default function ReviewPage() {
           className="flex-1 p-1 border border-black"
           onClick={() => fileImage && downloadImage(fileImage)}
         >
-          Get the photo
+          Save the photo
         </button>
       </div>
     </div>

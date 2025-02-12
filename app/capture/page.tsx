@@ -2,7 +2,7 @@
 
 import CamScreen from "@/components/CamScreen";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { ChangeEvent, ChangeEventHandler, useEffect, useState } from "react";
 
 export default function CapturePage() {
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
@@ -12,7 +12,19 @@ export default function CapturePage() {
     if (!isCapturing) {
       setCapturedImage(localStorage.getItem("myPhoto"));
     }
-  }, [isCapturing, capturedImage]);
+  }, [isCapturing]);
+
+  const handleUpload: ChangeEventHandler<HTMLInputElement> = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCapturedImage(reader.result as string);
+        localStorage.setItem("myPhoto", reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return isCapturing ? (
     <CamScreen setIsCapturing={setIsCapturing} />
@@ -24,8 +36,8 @@ export default function CapturePage() {
           <Image
             src={capturedImage.replace("data:image/jpeg;base64,:", "")}
             alt="my photo"
-            layout="fill"
-            objectFit="contain"
+            fill
+            className="object-contain"
           />
         )}
       </div>
@@ -36,7 +48,19 @@ export default function CapturePage() {
         >
           Capture
         </button>
-        <button className="flex-1 p-1 border border-black">Upload</button>
+        <label
+          htmlFor="image-upload"
+          className="flex-1 text-center p-1 border border-black cursor-pointer"
+        >
+          Upload
+        </label>
+        <input
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          onChange={handleUpload}
+          className="hidden"
+        />
       </div>
       <button
         className="w-[340px] p-1 border border-black mt-2"
